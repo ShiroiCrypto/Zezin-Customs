@@ -1,53 +1,104 @@
-const express = require('express');
-const cors = require('cors');
-const db = require('./db');
-const app = express();
-const PORT = 3000;
+const dc = require("discord.js");
+const client = require("../../index.js");
+const { QuickDB } = require("quick.db");
+const db = new QuickDB();
+const corRoxa = parseInt('1672cc', 16);
+const moment = require('moment');
 
-app.use(cors());
-app.use(express.json());
+client.on("interactionCreate", async (int) => {
+    const logs = await db.get(`canallogid_${int.guild.id}`);
+    const id = await db.get(`user_id_${int.user.id}_${int.guild.id}`);
 
-/**
- * Retorna todos os usuários registrados
- */
-app.get('/registrados', async (req, res) => {
-    const data = await db.all();
-    const registros = data
-        .filter(item => item.id.startsWith('registro_'))
-        .map(item => ({
-            userId: item.id.replace('registro_', ''),
-            ...item.value
-        }));
-    res.json(registros);
-});
+    if (!int.isButton()) return;
 
-/**
- * Consulta registro por ID do usuário (Discord)
- */
-app.get('/registro/:userId', async (req, res) => {
-    const registro = await db.get(`registro_${req.params.userId}`);
-    if (!registro) return res.status(404).json({ erro: 'Usuário não registrado.' });
-    res.json(registro);
-});
+    const canalLogs = client.channels.cache.get(`${logs}`);
+    if (!canalLogs) {
+        return await int.reply({ content: "❌ O canal de logs não foi encontrado.", ephemeral: true });
+    }
 
-/**
- * Verifica status do ponto (aberto/fechado)
- */
-app.get('/ponto/status/:userId', async (req, res) => {
-    const aberto = await db.get(`pontoAberto_${req.params.userId}`);
-    if (!aberto) return res.json({ status: 'fechado' });
-    res.json({ status: 'aberto', desde: aberto });
-});
+    if (int.customId === "btE") {
+        const pontoAberto = await db.get(`ponto_aberto_${int.user.id}_${int.guild.id}`);
+        if (pontoAberto) {
+            const reply = new dc.EmbedBuilder()
+                .setDescription(`Você já possui um ponto **ABERTO**.`)
+                .setColor(corRoxa);
+            return await int.reply({ embeds: [reply], flags: 64 }); // Resposta efêmera
+        }
 
-/**
- * Retorna o histórico de pontos do usuário
- */
-app.get('/ponto/historico/:userId', async (req, res) => {
-    const historico = await db.get(`historicoPonto_${req.params.userId}`);
-    if (!historico) return res.status(404).json({ erro: 'Histórico não encontrado.' });
-    res.json(historico);
-});
+        const startTime = new Date();
+        await db.set(`startTime_${int.user.id}`, startTime.toISOString());
+        await db.set(`ponto_aberto_${int.user.id}_${int.guild.id}`, true); // Marca o ponto como aberto
 
-app.listen(PORT, () => {
-    console.log(`✅ API rodando em http://localhost:${PORT}`);
+        const reply = new dc.EmbedBuilder()
+            .setDescription(`${int.user} Seu ponto foi **INICIADO** com sucesso.`)
+            .setColor(corRoxa);
+        await int.reply({ embeds: [reply], flags: 64 }); // Resposta efêmera
+
+        const embed = new dc.EmbedBuilder()
+            .setTitle(`**NOVO PONTO INICIADO**\n\n_INFORMAÇÕES ABAIXO:_`)
+            .setThumbnail(int.user.displayAvatarURL({ dynamic: true, size: 2048, format: 'png' }))
+            .setDescription(`Horário de entrada: ${startTime.toLocaleString('pt-BR')}\nMembro: **<@${int.user.id}> ID: (${id})**`)
+            .setColor(corRoxa)
+            .setFooter({
+                iconURL: int.guild.iconURL({ dynamic: true }),
+                text: `Copyright © | ShiroiCrypto.`
+            })
+            .setTimestamp();
+
+        canalLogs.send({ embeds: [embed] });
+    }
+
+    if (int.customId === "btS") {
+        const pontoAberto = await db.get(`ponto_aberto_${int.user.id}_${int.guild.id}`);
+        if (!pontoAberto) {
+            const reply = new dc.EmbedBuilder()
+                .setDescription(`Você não possui ponto **ABERTO**.`)
+                .setColor(corRoxa);
+            return await int.reply({ embeds: [reply], flags: 64 }); // Resposta efêmera
+        }
+
+        await db.set(`ponto_aberto_${ int.user.id}_${int.guild.id}`, false); // Marca o ponto como fechado
+        const endTime = new Date();
+        const startTimeISO = await db.get(`startTime_${int.user.id}`);
+        const startTime = new Date(startTimeISO);
+        const durationMs = endTime - startTime;
+        const elapsedTime = Math.floor(durationMs / 1000); // Convertendo milissegundos para segundos
+        const duration = new Date(durationMs).toISOString().substr(11, 8); // HH:MM:SS
+
+        // Salvar o ponto no histórico
+        const data = moment().format("DD/MM/YYYY");
+        const historicoKey = `historico_pontos_${id}`;
+        let historico = await db.get(historicoKey) || [];
+
+        historico.push({
+            data,
+            duracaoSegundos: elapsedTime // Usando elapsedTime aqui
+        });
+
+        await db.set(historicoKey, historico);
+
+        const reply = new dc.EmbedBuilder()
+            .setDescription(`${int.user} Seu ponto foi **FINALIZADO** com sucesso.\n## Horas Totais: \n\`\`\`ansi\n[31;1m${duration}[0m\`\`\``)
+            .setColor(corRoxa);
+        await int.reply({ embeds: [reply], flags: 64 }); // Resposta efêmera
+
+        const embed = new dc.EmbedBuilder()
+            .setTitle(`**PONTO FINALIZADO**\n\n_INFORMAÇÕES ABAIXO:_`)
+            .setThumbnail(int.user.displayAvatarURL({ dynamic: true, size: 2048, format: 'png' }))
+            .setDescription(`Horário de saída: ${endTime.toLocaleString('pt-BR')}\nMembro: **<@${int.user.id}> ID: (${id})**\n## **Horas Totais:** \n\`\`\`ansi\n[31;1m${duration}[0m\`\`\``)
+            .setColor(corRoxa)
+            .setFooter({
+                iconURL: int.guild.iconURL({ dynamic: true }),
+                text: `Copyright © | ShiroiCrypto.`
+            })
+            .setTimestamp();
+
+        canalLogs.send({ embeds: [embed] });
+
+        // Verifica se o usuário pode receber mensagens diretas
+        const user = await client.users.fetch(int.user.id);
+        if (user.dmChannel) {
+            user.send({ embeds: [embed] }).catch(err => console.error("Não foi possível enviar mensagem direta ao usuário:", err));
+        }
+    }
 });
