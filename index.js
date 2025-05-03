@@ -26,7 +26,7 @@ module.exports = client;
 client.slashCommands = new Collection();
 client.prefixCommands = new Collection();
 
-//require("./api.js")(client);
+require("./api.js")(client);
 require("./Handler")(client);
 
 // process.on('unhandRejection', (reason, promise) => {
