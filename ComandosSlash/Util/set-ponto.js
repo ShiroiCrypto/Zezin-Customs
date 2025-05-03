@@ -3,8 +3,8 @@ const dc = require('discord.js');
 const moment = require("moment");
 const { QuickDB } = require("quick.db");
 const db = new QuickDB();
-const corRoxa = parseInt('800080', 16);
-const corRosa = parseInt('FF007F', 16);
+const corRoxa = parseInt('1672cc', 16);
+const corRosa = parseInt('1672cc', 16);
 
 module.exports = {
   name: "set-ponto",

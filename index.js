@@ -29,13 +29,13 @@ client.prefixCommands = new Collection();
 //require("./api.js")(client);
 require("./Handler")(client);
 
-process.on('unhandRejection', (reason, promise) => {
-  console.log(`🚫 Erro Detectado:\n\n` + reason, promise);
- });
+// process.on('unhandRejection', (reason, promise) => {
+//   console.log(`🚫 Erro Detectado:\n\n` + reason, promise);
+//  });
 
- process.on('uncaughtException', (error, origin) => {
-  console.log(`🚫 Erro Detectado:\n\n` + error, origin);
-});
+//  process.on('uncaughtException', (error, origin) => {
+//   console.log(`🚫 Erro Detectado:\n\n` + error, origin);
+// });
 
 client.login(process.env.clientToken).then(() => {
   console.log(`✅ Bot logado com sucesso!`);

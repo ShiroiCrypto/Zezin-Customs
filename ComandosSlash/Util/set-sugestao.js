@@ -8,7 +8,7 @@ module.exports = {
     type: 1,
     options: [
         {
-            name: "setsugestao",
+            name: "canal_sugestão",
             description: "Canal aonde será enviado as sugestões",
             type: Discord.ApplicationCommandOptionType.Channel,
             required: true

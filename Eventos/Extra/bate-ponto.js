@@ -53,7 +53,7 @@ client.on("interactionCreate", async (int) => {
         const embedE = new dc.EmbedBuilder()
             .setTitle(` **NOVO PONTO INICIADO**\n\n_ INFORMAÇOES ABAIXO:_`)
             .setThumbnail(int.user.displayAvatarURL({ dynamic: true, size: 2048, format: 'png' }))
-            .setDescription(` Horário de entrada: ${tempo1}\n Membro: **${int.user.username} (${int.user.id})**`)
+            .setDescription(` Horário de entrada: ${tempo1}\n Membro: **<@${int.user.id}> ID: (${id}**`)
             .setColor(corRoxa)
             .setFooter({
                 iconURL: int.guild.iconURL({ dynamic: true }),

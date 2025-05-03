@@ -1,11 +1,8 @@
-const client = require(`../../sayorus.js`);
+const client = require(`../../index.js`);
 const Discord = require('discord.js');
 const { QuickDB } = require("quick.db");
 const db = new QuickDB();
-const corRoxa = parseInt('800080', 16);
-const corRosa = parseInt('FF007F', 16);
-
-
+const corRosa = parseInt('1672cc', 16);
 
 module.exports = {
   name: "sugestão.js",
@@ -36,12 +33,12 @@ client.on('messageCreate', async message => {
                     .setCustomId('aceitar_sugestao')
                     .setLabel(`0`)
                     .setStyle(2)
-                    .setEmoji('1168323257649348800'),
+                    .setEmoji('✅'),
                 new Discord.ButtonBuilder()
                     .setCustomId('recusar_sugestao')
                     .setLabel(`0`)
                     .setStyle(2)
-                    .setEmoji('1168323587208380497'),
+                    .setEmoji('❌'),
                 new Discord.ButtonBuilder()
                     .setCustomId('mostrar_votos')
                     .setLabel('Mostrar Votos')
@@ -64,10 +61,10 @@ client.on('interactionCreate', async (interaction) => {
     const userId = interaction.user.id;
 
     if (interaction.customId === 'aceitar_sugestao' || interaction.customId === 'recusar_sugestao') {
-        const r = db.get(`${userId}_${interaction.message.id}`);
+        const r = await db.get(`${userId}_${interaction.message.id}`);
         const embed = new Discord.EmbedBuilder()
             .setDescription('Você já votou.')
-            .setColor(corRoxa)
+            .setColor(corRosa);
         if (r === 1) return interaction.reply({ embeds: [embed], ephemeral: true });
 
         await db.set(`${userId}_${interaction.message.id}`, 1);
@@ -78,12 +75,12 @@ client.on('interactionCreate', async (interaction) => {
         if (interaction.customId === 'aceitar_sugestao') {
             if (!yesVotes.includes(userId)) {
                 yesVotes.push(userId);
-                db.set(`positivo_${interaction.message.id}`, yesVotes);
+                await db.set(`positivo_${interaction.message.id}`, yesVotes);
             }
         } else {
             if (!noVotes.includes(userId)) {
                 noVotes.push(userId);
-                db.set(`negativo_${interaction.message.id}`, noVotes);
+                await db.set(`negativo_${interaction.message.id}`, noVotes);
             }
         }
 
@@ -93,12 +90,12 @@ client.on('interactionCreate', async (interaction) => {
                     .setCustomId('aceitar_sugestao')
                     .setLabel(`${yesVotes.length}`)
                     .setStyle(2)
-                    .setEmoji('1168323257649348800'),
+                    .setEmoji('✅'),
                 new Discord.ButtonBuilder()
                     .setCustomId('recusar_sugestao')
                     .setLabel(`${noVotes.length}`)
                     .setStyle(2)
-                    .setEmoji('1168323587208380497'),
+                    .setEmoji('❌'),
                 new Discord.ButtonBuilder()
                     .setCustomId('mostrar_votos')
                     .setLabel('Mostrar Votos')
@@ -107,7 +104,7 @@ client.on('interactionCreate', async (interaction) => {
 
         interaction.update({ components: [row] });
     }
-
+    
     if (interaction.customId === 'mostrar_votos') {
         const yesVotes = await db.get(`positivo_${interaction.message.id}`) || [];
         const noVotes = await db.get(`negativo_${interaction.message.id}`) || [];
