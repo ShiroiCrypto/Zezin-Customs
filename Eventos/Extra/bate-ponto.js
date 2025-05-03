@@ -3,7 +3,6 @@ const client = require("../../index.js");
 const { QuickDB } = require("quick.db");
 const db = new QuickDB();
 const corRoxa = parseInt('1672cc', 16);
-let shiroi = [];
 const moment = require('moment');
 
 client.on("interactionCreate", async (int) => {
@@ -13,25 +12,27 @@ client.on("interactionCreate", async (int) => {
     if (!int.isButton()) return;
 
     const canalLogs = client.channels.cache.get(`${logs}`);
-    if (!canalLogs) return console.error("O canal de logs não foi encontrado.");
+    if (!canalLogs) {
+        return await int.reply({ content: "❌ O canal de logs não foi encontrado.", ephemeral: true });
+    }
 
     if (int.customId === "btE") {
-        if (shiroi.includes(int.user.id)) {
+        const pontoAberto = await db.get(`ponto_aberto_${int.user.id}_${int.guild.id}`);
+        if (pontoAberto) {
             const reply = new dc.EmbedBuilder()
                 .setDescription(`Você já possui um ponto **ABERTO**.`)
                 .setColor(corRoxa);
-            return await int.reply({ embeds: [reply], flags: 64 }); // Usando flags para resposta efêmera
+            return await int.reply({ embeds: [reply], flags: 64 }); // Resposta efêmera
         }
 
-        shiroi.push(int.user.id);
         const startTime = new Date();
-
         await db.set(`startTime_${int.user.id}`, startTime.toISOString());
+        await db.set(`ponto_aberto_${int.user.id}_${int.guild.id}`, true); // Marca o ponto como aberto
 
         const reply = new dc.EmbedBuilder()
             .setDescription(`${int.user} Seu ponto foi **INICIADO** com sucesso.`)
             .setColor(corRoxa);
-        await int.reply({ embeds: [reply], flags: 64 }); // Usando flags para resposta efêmera
+        await int.reply({ embeds: [reply], flags: 64 }); // Resposta efêmera
 
         const embed = new dc.EmbedBuilder()
             .setTitle(`**NOVO PONTO INICIADO**\n\n_INFORMAÇÕES ABAIXO:_`)
@@ -48,14 +49,15 @@ client.on("interactionCreate", async (int) => {
     }
 
     if (int.customId === "btS") {
-        if (!shiroi.includes(int.user.id)) {
+        const pontoAberto = await db.get(`ponto_aberto_${int.user.id}_${int.guild.id}`);
+        if (!pontoAberto) {
             const reply = new dc.EmbedBuilder()
                 .setDescription(`Você não possui ponto **ABERTO**.`)
                 .setColor(corRoxa);
-            return await int.reply({ embeds: [reply], flags: 64 }); // Usando flags para resposta efêmera
+            return await int.reply({ embeds: [reply], flags: 64 }); // Resposta efêmera
         }
 
-        shiroi = shiroi.filter((el) => el !== int.user.id);
+        await db.set(`ponto_aberto_${ int.user.id}_${int.guild.id}`, false); // Marca o ponto como fechado
         const endTime = new Date();
         const startTimeISO = await db.get(`startTime_${int.user.id}`);
         const startTime = new Date(startTimeISO);
@@ -78,7 +80,7 @@ client.on("interactionCreate", async (int) => {
         const reply = new dc.EmbedBuilder()
             .setDescription(`${int.user} Seu ponto foi **FINALIZADO** com sucesso.\n## Horas Totais: \n\`\`\`ansi\n[31;1m${duration}[0m\`\`\``)
             .setColor(corRoxa);
-        await int.reply({ embeds: [reply], flags: 64 }); // Usando flags para resposta efêmera
+        await int.reply({ embeds: [reply], flags: 64 }); // Resposta efêmera
 
         const embed = new dc.EmbedBuilder()
             .setTitle(`**PONTO FINALIZADO**\n\n_INFORMAÇÕES ABAIXO:_`)
@@ -92,6 +94,11 @@ client.on("interactionCreate", async (int) => {
             .setTimestamp();
 
         canalLogs.send({ embeds: [embed] });
-        int.user.send({ embeds: [embed] });
+
+        // Verifica se o usuário pode receber mensagens diretas
+        const user = await client.users.fetch(int.user.id);
+        if (user.dmChannel) {
+            user.send({ embeds: [embed] }).catch(err => console.error("Não foi possível enviar mensagem direta ao usuário:", err));
+        }
     }
 });
