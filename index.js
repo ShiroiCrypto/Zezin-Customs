@@ -28,7 +28,7 @@ client.slashCommands = new Collection();
 client.prefixCommands = new Collection();
 
 // Carregar as APIs e handlers
-require("./api.js")(client);
+// require("./api.js")(client);
 require("./Handler")(client);
 
 // Processamento de erros não tratados (opcional)
