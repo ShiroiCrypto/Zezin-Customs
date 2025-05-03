@@ -5,6 +5,6 @@ server.get('/', (req,res) => {
     return res.json({Retorno: 'Nossa APi está online'})
 })
 
-server.listen(3000, () => {
+server.listen(80, () => {
     console.log('Servido está funcionando...')
 })
