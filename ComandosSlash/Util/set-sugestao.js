@@ -15,8 +15,12 @@ module.exports = {
         },],
     permissions: {},
     run: async (client, interaction, args) => {
-
-
+        if (!interaction.member.permissions.has(Discord.PermissionFlagsBits.Administrator))
+            return interaction.reply({
+                content: `Olá ${interaction.user}, você não possui permissão para utilizar este comando!`,
+                ephemeral: true,
+            })
+        
 
         const canal = interaction.options.getChannel("canal_sugestão");
 

@@ -9,7 +9,12 @@ module.exports = {
     type: 1,
     permissions: {},
     run: async (client, interaction, args) => {
-
+        if (!interaction.member.permissions.has(Discord.PermissionFlagsBits.Administrator))
+            return interaction.reply({
+                content: `Olá ${interaction.user}, você não possui permissão para utilizar este comando!`,
+                ephemeral: true,
+            })
+        
 
 
         try{

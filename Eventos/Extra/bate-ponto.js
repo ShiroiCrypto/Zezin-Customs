@@ -4,6 +4,7 @@ const { QuickDB } = require("quick.db");
 const db = new QuickDB();
 const corRoxa = parseInt('1672cc', 16);
 let shiroi = [];
+const moment = require('moment');
 
 client.on("interactionCreate", async (int) => {
     const logs = await db.get(`canallogid_${int.guild.id}`);
@@ -19,7 +20,7 @@ client.on("interactionCreate", async (int) => {
             const reply = new dc.EmbedBuilder()
                 .setDescription(`Você já possui um ponto **ABERTO**.`)
                 .setColor(corRoxa);
-            return await int.reply({ embeds: [reply], ephemeral: true });
+            return await int.reply({ embeds: [reply], flags: 64 }); // Usando flags para resposta efêmera
         }
 
         shiroi.push(int.user.id);
@@ -30,7 +31,7 @@ client.on("interactionCreate", async (int) => {
         const reply = new dc.EmbedBuilder()
             .setDescription(`${int.user} Seu ponto foi **INICIADO** com sucesso.`)
             .setColor(corRoxa);
-        await int.reply({ embeds: [reply], ephemeral: true });
+        await int.reply({ embeds: [reply], flags: 64 }); // Usando flags para resposta efêmera
 
         const embed = new dc.EmbedBuilder()
             .setTitle(`**NOVO PONTO INICIADO**\n\n_INFORMAÇÕES ABAIXO:_`)
@@ -51,7 +52,7 @@ client.on("interactionCreate", async (int) => {
             const reply = new dc.EmbedBuilder()
                 .setDescription(`Você não possui ponto **ABERTO**.`)
                 .setColor(corRoxa);
-            return await int.reply({ embeds: [reply], ephemeral: true });
+            return await int.reply({ embeds: [reply], flags: 64 }); // Usando flags para resposta efêmera
         }
 
         shiroi = shiroi.filter((el) => el !== int.user.id);
@@ -59,12 +60,25 @@ client.on("interactionCreate", async (int) => {
         const startTimeISO = await db.get(`startTime_${int.user.id}`);
         const startTime = new Date(startTimeISO);
         const durationMs = endTime - startTime;
+        const elapsedTime = Math.floor(durationMs / 1000); // Convertendo milissegundos para segundos
         const duration = new Date(durationMs).toISOString().substr(11, 8); // HH:MM:SS
+
+        // Salvar o ponto no histórico
+        const data = moment().format("DD/MM/YYYY");
+        const historicoKey = `historico_pontos_${id}`;
+        let historico = await db.get(historicoKey) || [];
+
+        historico.push({
+            data,
+            duracaoSegundos: elapsedTime // Usando elapsedTime aqui
+        });
+
+        await db.set(historicoKey, historico);
 
         const reply = new dc.EmbedBuilder()
             .setDescription(`${int.user} Seu ponto foi **FINALIZADO** com sucesso.\n## Horas Totais: \n\`\`\`ansi\n[31;1m${duration}[0m\`\`\``)
             .setColor(corRoxa);
-        await int.reply({ embeds: [reply], ephemeral: true });
+        await int.reply({ embeds: [reply], flags: 64 }); // Usando flags para resposta efêmera
 
         const embed = new dc.EmbedBuilder()
             .setTitle(`**PONTO FINALIZADO**\n\n_INFORMAÇÕES ABAIXO:_`)
