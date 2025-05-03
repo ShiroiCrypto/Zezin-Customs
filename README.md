@@ -46,7 +46,7 @@ npm install
 Crie um arquivo `.env` com as seguintes variáveis:
 
 ```
-TOKEN=seu_token_do_bot
+clientToken=seu_token_do_bot
 CLIENT_ID=seu_id_do_cliente
 GUILD_ID=id_do_servidor_para_testes
 ```
@@ -66,5 +66,3 @@ Distribuído sob a Licença [GNU GPLv3](LICENSE).
 ---
 
 Desenvolvido por [ShiroiCrypto](https://github.com/ShiroiCrypto).
-
-```
