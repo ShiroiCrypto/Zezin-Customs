@@ -20,7 +20,7 @@ client.on("interactionCreate", async(interaction) => {
       const pergunta2 = new Discord.TextInputBuilder()
       .setCustomId("pergunta2") // Coloque o ID da pergunta
       .setLabel("ID") // Coloque a pergunta
-      .setPlaceholder("Seu ID / Não coloque letras,!") // Mensagem que fica antes de escrever a resposta
+      .setPlaceholder("Seu ID / Não coloque letras!") // Mensagem que fica antes de escrever a resposta
       .setRequired(true) // Deixar para responder obrigatório (true | false)
       .setStyle(Discord.TextInputStyle.Short) // Tipo de resposta (Short | Paragraph)
       const pergunta3 = new Discord.TextInputBuilder()
@@ -32,7 +32,7 @@ client.on("interactionCreate", async(interaction) => {
       const pergunta4 = new Discord.TextInputBuilder()
       .setCustomId("pergunta4") // Coloque o ID da pergunta
       .setLabel("ID do Recrutador") // Coloque a pergunta
-      .setPlaceholder("ID do Recrutador / Não coloque letras,!") // Mensagem que fica antes de escrever a resposta
+      .setPlaceholder("ID do Recrutador / Não coloque letras!") // Mensagem que fica antes de escrever a resposta
       .setRequired(true) // Deixar para responder obrigatório (true | false)
       .setStyle(Discord.TextInputStyle.Short) // Tipo de resposta (Short | Paragraph)
 
@@ -78,7 +78,7 @@ client.on("interactionCreate", async(interaction) => {
         await db.set(`user_id_${interaction.user.id}_${interaction.guild.id}`, resposta2);
 
         const embed = new Discord.EmbedBuilder()
-          .setColor("#ffff00")
+          .setColor("#1672cc")
           .setTitle("Customs System")
           .setAuthor({ name: interaction.guild.name, iconURL: interaction.guild.iconURL({ dynamic: true }) })
           .setThumbnail(interaction.user.displayAvatarURL({ dynamic: true }))

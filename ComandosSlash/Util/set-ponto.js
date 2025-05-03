@@ -43,7 +43,7 @@ module.exports = {
     const embedT = new Discord.EmbedBuilder()
     .setTitle(`Bate Ponto System | ShiroiCrypto`)
     .setThumbnail(interaction.guild.iconURL({ dinamyc: true, format: "png", size: 4096 }))
-    .setDescription(`  Para **INICIAR** seu **PONTO** clique no botão: \n\n  Para **FINALIZAR** seu **PONTO** clique no botão: <a:nao:1217903998103982131>`)
+    .setDescription(`  Para **INICIAR** seu **PONTO** clique no botão: \n\n  Para **FINALIZAR** seu **PONTO** clique no botão: `)
     .setColor(corRoxa)
     .setFooter({
         iconURL: interaction.guild.iconURL({ dynamic: true }),
