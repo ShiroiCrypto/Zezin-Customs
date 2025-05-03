@@ -68,8 +68,3 @@ Distribuído sob a Licença [GNU GPLv3](LICENSE).
 Desenvolvido por [ShiroiCrypto](https://github.com/ShiroiCrypto).
 
 ```
-
----
-
-Se quiser, posso gerar esse `README.md` direto em arquivo para você colar ou importar. Deseja isso?
-```
