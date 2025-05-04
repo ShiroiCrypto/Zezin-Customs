@@ -45,7 +45,7 @@ module.exports = {
 
         // Formatação segura para números de telefone
         const whatsappFormatado = whatsapp.length >= 9 
-            ? `${whatsapp.slice(0, 3)}-${whatsapp.slice(3, 6)}-${whatsapp.slice(6)}` 
+            ? `${whatsapp.slice(0, 3)}-${whatsapp.slice(3, 6)}}` 
             : whatsapp;
 
         const embed = new Discord.EmbedBuilder()
