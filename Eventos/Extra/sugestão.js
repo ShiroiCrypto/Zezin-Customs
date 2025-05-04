@@ -1,130 +1,153 @@
-const client = require(`../../index.js`);
-const Discord = require('discord.js');
-const { QuickDB } = require("quick.db");
+const client = require('../../index.js');
+const { EmbedBuilder, ActionRowBuilder, ButtonBuilder, ButtonStyle, MessageFlags } = require('discord.js');
+const { QuickDB } = require('quick.db');
 const db = new QuickDB();
 const corRosa = parseInt('1672cc', 16);
 
 module.exports = {
-  name: "sugestão.js",
+  name: 'sugestao.js',
 };
 
-client.on('messageCreate', async message => {
-    if (!message.content) return; // Verifica se a mensagem não está vazia
+// Evento para capturar mensagens no canal de sugestões
+client.on('messageCreate', async (message) => {
+  if (!message.content || message.author.bot) return;
 
-    const channelId = await db.get(`canalsugestao_${message.guild.id}`);
-    if (message.channel.id !== channelId) return;
+  const channelId = await db.get(`canalsugestao_${message.guild.id}`);
+  if (message.channel.id !== channelId) return;
 
-    try {
-        await message.delete();
-    } catch (error) {
-        console.error('Erro ao deletar mensagem:', error);
-        return; // Retorna se não conseguir deletar a mensagem
-    }
+  try {
+    await message.delete();
+  } catch (error) {
+    console.error('Erro ao deletar mensagem:', error);
+    return;
+  }
 
-    const embed = new Discord.EmbedBuilder()
-        .setAuthor({ name: `Sugestão de: ${message.author.username}`, iconURL: message.author.displayAvatarURL({ dynamic: true }) })
-        .setDescription(`> \`\`\`${message.content}\`\`\``)
-        .setThumbnail(message.author.displayAvatarURL())
-        .setColor(corRosa)
-        .setFooter({ text: `${message.author.username}`, iconURL: message.author.displayAvatarURL({ format: "png" }) });
+  const embed = new EmbedBuilder()
+    .setAuthor({ name: `Sugestão de: ${message.author.username}`, iconURL: message.author.displayAvatarURL({ dynamic: true }) })
+    .setDescription(`> \`\`\`${message.content}\`\`\``)
+    .setThumbnail(message.author.displayAvatarURL())
+    .setColor(corRosa)
+    .setFooter({ text: `${message.author.username}`, iconURL: message.author.displayAvatarURL({ format: 'png' }) });
 
-    const row1 = new Discord.ActionRowBuilder()
-        .addComponents(
-            new Discord.ButtonBuilder()
-                .setCustomId('aceitar_sugestao')
-                .setLabel(`0`)
-                .setStyle(2)
-                .setEmoji('✅'),
-            new Discord.ButtonBuilder()
-                .setCustomId('recusar_sugestao')
-                .setLabel(`0`)
-                .setStyle(2)
-                .setEmoji('❌'),
-            new Discord.ButtonBuilder()
-                .setCustomId('mostrar_votos')
-                .setLabel('Mostrar Votos')
-                .setStyle(1)
-        );
+  const row = new ActionRowBuilder().addComponents(
+    new ButtonBuilder()
+      .setCustomId('aceitar_sugestao')
+      .setLabel('0')
+      .setStyle(ButtonStyle.Secondary)
+      .setEmoji('✅'),
+    new ButtonBuilder()
+      .setCustomId('recusar_sugestao')
+      .setLabel('0')
+      .setStyle(ButtonStyle.Secondary)
+      .setEmoji('❌'),
+    new ButtonBuilder()
+      .setCustomId('mostrar_votos')
+      .setLabel('Mostrar Votos')
+      .setStyle(ButtonStyle.Primary)
+  );
 
-    const sentMessage = await message.channel.send({ embeds: [embed], components: [row1] });
-    await db.set(`suggest_${message.id}`, true);
+  const sentMessage = await message.channel.send({ embeds: [embed], components: [row] });
+  await db.set(`suggest_${sentMessage.id}`, true);
 
-    try {
-        const thread = await sentMessage.startThread({
-            name: `Sugestão Thread - ${message.author.username}`,
-            autoArchiveDuration: 60, // Sugestão será encerrada após 60 minutos
-            startMessage: message.content
-        });
-    } catch (error) {
-        console.error('Erro ao iniciar a thread:', error);
-    }
+  try {
+    await sentMessage.startThread({
+      name: `Sugestão Thread - ${message.author.username}`,
+      autoArchiveDuration: 60,
+    });
+  } catch (error) {
+    console.error('Erro ao iniciar a thread:', error);
+  }
 });
 
+// Evento para capturar interações com os botões
 client.on('interactionCreate', async (interaction) => {
-    if (!interaction.isButton()) return;
+  if (!interaction.isButton()) return;
 
-    const userId = interaction.user.id;
+  const userId = interaction.user.id;
+  const messageId = interaction.message.id;
 
-    if (interaction.customId === 'aceitar_sugestao' || interaction.customId === 'recusar_sugestao') {
-        const hasVoted = await db.get(`${userId}_${interaction.message.id}`);
-        const embed = new Discord.EmbedBuilder()
-            .setDescription('Você já votou.')
-            .setColor(corRosa);
-        
-        if (hasVoted) return interaction.reply({ embeds: [embed], ephemeral: true });
+  // Verifica se a mensagem é uma sugestão
+  const isSuggestion = await db.get(`suggest_${messageId}`);
+  if (!isSuggestion) return;
 
-        await db.set(`${userId}_${interaction.message.id}`, true); // Marca que o usuário já votou
-
-        const yesVotes = await db.get(`positivo_${interaction.message.id}`) || [];
-        const noVotes = await db.get(`negativo_${interaction.message.id}`) || [];
-
-        if (interaction.customId === 'aceitar_sugestao') {
-            if (!yesVotes.includes(userId)) {
-                yesVotes.push(userId);
-                await db.set(`positivo_${interaction.message.id}`, yesVotes);
-            }
-        } else {
-            if (!noVotes.includes(userId)) {
-                noVotes.push(userId);
-                await db.set(`negativo_${interaction.message.id}`, noVotes);
-            }
-        }
-
-        const row = new Discord.ActionRowBuilder()
-            .addComponents(
-                new Discord.ButtonBuilder()
-                    .setCustomId('aceitar_sugestao')
-                    .setLabel(`${yesVotes.length}`)
-                    .setStyle(2)
-                    .setEmoji('✅'),
-                new Discord.ButtonBuilder()
-                    .setCustomId('recusar_sugestao')
-                    .setLabel(`${noVotes.length}`)
-                    .setStyle(2)
-                    .setEmoji('❌'),
-                new Discord.ButtonBuilder()
-                    .setCustomId('mostrar_votos')
-                    .setLabel('Mostrar Votos')
-                    .setStyle(1)
-            );
-
-        await interaction.update({ components: [row] });
+  // Verifica se o usuário já votou
+  const hasVoted = await db.get(`${userId}_${messageId}`);
+  if (hasVoted && interaction.customId !== 'mostrar_votos') {
+    const embed = new EmbedBuilder()
+      .setDescription('Você já votou.')
+      .setColor(corRosa);
+    try {
+      return await interaction.reply({ embeds: [embed], ephemeral: true });
+    } catch (err) {
+      console.error('Erro ao responder interação duplicada:', err);
+      return;
     }
-    
-    if (interaction.customId === 'mostrar_votos') {
-        const yesVotes = await db.get(`positivo_${interaction.message.id}`) || [];
-        const noVotes = await db.get(`negativo_${interaction.message.id}`) || [];
+  }
 
-        const yesUsernames = yesVotes.map(userId => `<@${userId}>`).join('\n') || 'Sem votação';
-        const noUsernames = noVotes.map(userId => `<@${userId}>`).join('\n') || 'Sem votação';
+  // Processa o voto
+  if (interaction.customId === 'aceitar_sugestao' || interaction.customId === 'recusar_sugestao') {
+    await db.set(`${userId}_${messageId}`, true);
 
-        const embed = new Discord.EmbedBuilder()
-            .setColor(corRosa)
-            .addFields(
-                { name: 'Votação positiva', value: yesUsernames, inline: true },
-                { name: 'Votação negativa', value: noUsernames, inline: true }
-            );
+    const yesVotes = (await db.get(`positivo_${messageId}`)) || [];
+    const noVotes = (await db.get(`negativo_${messageId}`)) || [];
 
-        await interaction.reply({ embeds: [embed], ephemeral: true });
+    if (interaction.customId === 'aceitar_sugestao') {
+      if (!yesVotes.includes(userId)) {
+        yesVotes.push(userId);
+        await db.set(`positivo_${messageId}`, yesVotes);
+      }
+    } else if (interaction.customId === 'recusar_sugestao') {
+      if (!noVotes.includes(userId)) {
+        noVotes.push(userId);
+        await db.set(`negativo_${messageId}`, noVotes);
+      }
     }
+
+    // Atualiza os contadores nos botões
+    const updatedRow = new ActionRowBuilder().addComponents(
+      new ButtonBuilder()
+        .setCustomId('aceitar_sugestao')
+        .setLabel(`${yesVotes.length}`)
+        .setStyle(ButtonStyle.Secondary)
+        .setEmoji('✅'),
+      new ButtonBuilder()
+        .setCustomId('recusar_sugestao')
+        .setLabel(`${noVotes.length}`)
+        .setStyle(ButtonStyle.Secondary)
+        .setEmoji('❌'),
+      new ButtonBuilder()
+        .setCustomId('mostrar_votos')
+        .setLabel('Mostrar Votos')
+        .setStyle(ButtonStyle.Primary)
+    );
+
+    try {
+      await interaction.update({ components: [updatedRow] });
+    } catch (err) {
+      console.error('Erro ao atualizar os botões:', err);
+    }
+  }
+
+  // Mostra os votos
+  if (interaction.customId === 'mostrar_votos') {
+    const yesVotes = (await db.get(`positivo_${messageId}`)) || [];
+    const noVotes = (await db.get(`negativo_${messageId}`)) || [];
+
+    const yesMentions = yesVotes.map((id) => `<@${id}>`).join(', ') || 'Nenhum voto.';
+    const noMentions = noVotes.map((id) => `<@${id}>`).join(', ') || 'Nenhum voto.';
+
+    const embed = new EmbedBuilder()
+      .setTitle('Votos da Sugestão')
+      .addFields(
+        { name: '✅ A favor', value: yesMentions, inline: false },
+        { name: '❌ Contra', value: noMentions, inline: false }
+      )
+      .setColor(corRosa);
+
+    try {
+      await interaction.reply({ embeds: [embed], ephemeral: true });
+    } catch (err) {
+      console.error('Erro ao mostrar votos:', err);
+    }
+  }
 });
