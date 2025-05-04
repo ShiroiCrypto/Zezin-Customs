@@ -21,9 +21,10 @@ module.exports = {
         }
     ],
     run: async (client, interaction) => {
-        if (!interaction.member.permissions.has(Discord.PermissionFlagsBits.ManageRoles)) {
+        const requiredRoleId = await db.get(`cargo_advertencia_${interaction.guild.id}`);
+        if (!interaction.member.roles.cache.has(requiredRoleId)) {
             return interaction.reply({
-                content: "⛔ Você não tem permissão para remover advertências.",
+                content: `❌ Você não tem permissão para usar este comando. É necessário ter o cargo específico.`,
                 ephemeral: true
             });
         }
@@ -46,7 +47,7 @@ module.exports = {
 
         await db.set(`advertencias_${guildId}_${user.id}`, advertCount);
 
-        const logChannelId = await db.get(`canal_advertencia_${guildId}`);
+        const logChannelId = await db.get(`log_advertencia_${guildId}`);
         const logChannel = interaction.guild.channels.cache.get(logChannelId);
 
         if (logChannel && logChannel.viewable && logChannel.permissionsFor(interaction.guild.members.me).has("SendMessages")) {
@@ -65,31 +66,6 @@ module.exports = {
 
         return interaction.reply({
             content: `✅ Removidas ${quantidade} advertência(s) do usuário ${user.tag}. Atualmente com ${advertCount} advertência(s).`,
-            ephemeral: true
-        });
-    }
-};
-
-// Comando separado para listar advertências
-module.exports.listarAdvertencias = {
-    name: "listar-advertencias",
-    description: "Lista as advertências de um usuário.",
-    type: 1,
-    options: [
-        {
-            name: "usuario",
-            description: "Usuário cujas advertências serão listadas.",
-            type: Discord.ApplicationCommandOptionType.User,
-            required: true
-        }
-    ],
-    run: async (client, interaction) => {
-        const user = interaction.options.getUser("usuario");
-        const guildId = interaction.guild.id;
-        const advertCount = await db.get(`advertencias_${guildId}_${user.id}`) || 0;
-
-        return interaction.reply({
-            content: `📋 O usuário ${user.tag} possui ${advertCount} advertência(s).`,
             ephemeral: true
         });
     }
