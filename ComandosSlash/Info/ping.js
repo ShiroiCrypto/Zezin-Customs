@@ -1,34 +1,29 @@
-const Discord = require("discord.js");
+const Discord = require("discord.js")
 
 module.exports = {
-    name: "ping",
-    description: "Veja o atual ping do bot.",
-    type: Discord.ApplicationCommandType.ChatInput,
-    run: async (client, interaction) => {
+  name: "ping", // Coloque o nome do comando
+  description: "Veja o ping do bot.", // Coloque a descrição do comando
+  type: Discord.ApplicationCommandType.ChatInput,
 
-  const button = new Discord.ActionRowBuilder()
-			.addComponents(
-				new Discord.ButtonBuilder()
-					.setCustomId('avemariadoido')
-					.setLabel('Atualizar ping')
-.setStyle(Discord.ButtonStyle.Primary)
-			);
-      
-      const embed = new Discord.EmbedBuilder()
-      .setColor("1672cc")
-       .setTitle("🎾 ****»**** **PONG!**")
-        .setDescription(`> **ping do bot** \`${client.ws.ping}\`**ms!**`)
-        interaction.reply({embeds: [embed], components: [button],fetchReply: true}).then(msg =>{
+  run: async (client, interaction) => {
 
-  const collector = msg.createMessageComponentCollector({ filter: m => m.user.id == interaction.user.id, idle: 60000 * 10})
+    const corAzul = parseInt('1672cc', 16);
+    let ping = client.ws.ping;
 
-  collector.on("collect", i =>{
-    i.reply({embeds: [new Discord.EmbedBuilder()
-      .setColor("1672cc")
-      .setDescription(`> **ping do bot** \`${client.ws.ping}\`**ms!**`)]})
-  })
-          
-        })
-    }
-};
+    let embed_1 = new Discord.EmbedBuilder()
+    .setAuthor({ name: client.user.username, iconURL: client.user.displayAvatarURL({ dynamic: true }) })
+    .setDescription(`Olá ${interaction.user}, meu ping está em \`calculando...\``)
+    .setColor(corAzul);
 
+    let embed_2 = new Discord.EmbedBuilder()
+    .setAuthor({ name: client.user.username, iconURL: client.user.displayAvatarURL({ dynamic: true }) })
+    .setDescription(`Olá ${interaction.user}, meu ping está em \`${ping}ms\`.`)
+    .setColor(corAzul);
+
+    interaction.reply({ embeds: [embed_1] }).then( () => {
+        setTimeout( () => {
+            interaction.editReply({ embeds: [embed_2] })
+        }, 2000)
+    })
+  }
+}

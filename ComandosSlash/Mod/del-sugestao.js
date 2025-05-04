@@ -14,14 +14,8 @@ module.exports = {
                 content: `Olá ${interaction.user}, você não possui permissão para utilizar este comando!`,
                 ephemeral: true,
             })
-        
-
-
         try{
              interaction.guild
-      
-           
-    
       db.delete(`canalsugestao_${interaction.guild.id}`)
             interaction.reply({ content: `✅ Canal deletado com sucesso`})
         } catch(e) {

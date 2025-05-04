@@ -40,6 +40,7 @@ client.on("interactionCreate", async (interaction) => {
                 .setLabel("Whatsapp da City")
                 .setPlaceholder("Seu Whatsapp / Apenas os números sem o traço!")
                 .setRequired(true)
+                .setMaxLength(6)
                 .setStyle(Discord.TextInputStyle.Short);
 
             const pergunta4 = new Discord.TextInputBuilder()
@@ -120,6 +121,9 @@ client.on("interactionCreate", async (interaction) => {
 
                 // Salva nome do personagem
                 await db.set(`nome_${interaction.user.id}_${interaction.guild.id}`, resposta1);
+                await db.set(`whatsapp_${interaction.user.id}_${interaction.guild.id}`, resposta3);
+                await db.set(`idrec_${interaction.user.id}_${interaction.guild.id}`, resposta4);
+                await db.set(`cargo_${interaction.user.id}_${interaction.guild.id}`, role_id);
 
                 const embed = new Discord.EmbedBuilder()
                     .setColor("#1672cc")
