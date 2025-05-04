@@ -48,14 +48,16 @@ module.exports = {
         await db.set(`advertencias_${guildId}_${user.id}`, advertCount);
 
         const embedDM = new Discord.EmbedBuilder()
-            .setColor("Yellow")
+            .setColor("#FFA500") // Laranja alerta elegante
             .setTitle("⚠️ Advertência Recebida")
-            .setDescription(`Você recebeu uma advertência no servidor **${interaction.guild.name}**.`)
+            .setDescription(`> Você recebeu uma advertência no servidor **${interaction.guild.name}**.`)
+            .setThumbnail(interaction.guild.iconURL({ dynamic: true }))
             .addFields(
-                { name: "👮 Punição aplicada por", value: `${interaction.user.tag}`, inline: true },
-                { name: "📄 Motivo", value: motivo, inline: true },
-                { name: "📌 Total de Advertências", value: `\`${advertCount}/3\``, inline: true }
+                { name: "👮 Aplicada por", value: `> ${interaction.user.tag}`, inline: true },
+                { name: "📄 Motivo", value: `> ${motivo}`, inline: true },
+                { name: "📌 Total de Advertências", value: `> \`${advertCount}/3\``, inline: true }
             )
+            .setFooter({ text: "Sistema de Advertências | Zezin Customs", iconURL: client.user.displayAvatarURL() })
             .setTimestamp();
 
         try {
@@ -78,14 +80,16 @@ module.exports = {
         // Envia para o canal de logs (se estiver configurado)
         if (logChannel) {
             const logEmbed = new Discord.EmbedBuilder()
-                .setColor("Orange")
+                .setColor("#FF8C00") // Laranja escuro, elegante e visualmente chamativo
                 .setTitle("📋 Nova Advertência")
+                .setThumbnail(user.displayAvatarURL({ dynamic: true }))
                 .addFields(
-                    { name: "👤 Usuário", value: `${user.tag} (${user.id})` },
-                    { name: "🛠️ Aplicada por", value: `${interaction.user.tag}` },
-                    { name: "📄 Motivo", value: motivo },
-                    { name: "📌 Total de Advertências", value: `\`${advertCount}/3\`` }
+                    { name: "👤 Usuário", value: `> ${user.tag} \`(${user.id})\``, inline: false },
+                    { name: "🛠️ Aplicada por", value: `> ${interaction.user.tag}`, inline: true },
+                    { name: "📄 Motivo", value: `> ${motivo}`, inline: true },
+                    { name: "📌 Total de Advertências", value: `> \`${advertCount}/3\``, inline: true }
                 )
+                .setFooter({ text: "Sistema de Advertências | Zezin Customs", iconURL: client.user.displayAvatarURL() })
                 .setTimestamp();
 
             await logChannel.send({ embeds: [logEmbed] });
@@ -97,10 +101,19 @@ module.exports = {
 
             if (logChannel) {
                 const demissaoEmbed = new Discord.EmbedBuilder()
-                    .setColor("Red")
-                    .setTitle("🚨 3ª Advertência Recebida")
-                    .setDescription(`O usuário <@${user.id}> atingiu o limite de 3 advertências.\n\n` +
-                        `⚠️ A demissão deverá ser feita manualmente pela equipe responsável.`)
+                    .setColor("#FF0000") // Vermelho forte para urgência
+                    .setTitle("🚨 Limite de Advertências Atingido")
+                    .setDescription(
+                        `O usuário <@${user.id}> recebeu a **3ª advertência** no servidor **${interaction.guild.name}**.\n\n` +
+                        "⚠️ **Atenção:** A demissão deve ser **realizada manualmente** pela equipe responsável."
+                    )
+                    .setThumbnail(user.displayAvatarURL({ dynamic: true }))
+                    .addFields(
+                        { name: "👤 Usuário", value: `> ${user.tag} \`(${user.id})\`` },
+                        { name: "🛠️ Aplicada por", value: `> ${interaction.user.tag}` },
+                        { name: "📄 Motivo da última advertência", value: `> ${motivo}` }
+                    )
+                    .setFooter({ text: "Sistema de Advertências | Zezin Customs", iconURL: client.user.displayAvatarURL() })
                     .setTimestamp();
 
                 await logChannel.send({ embeds: [demissaoEmbed] });

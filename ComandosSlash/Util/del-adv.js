@@ -52,14 +52,16 @@ module.exports = {
 
         if (logChannel && logChannel.viewable && logChannel.permissionsFor(interaction.guild.members.me).has("SendMessages")) {
             const embedLog = new Discord.EmbedBuilder()
-                .setColor("Yellow")
-                .setTitle("🗑️ Advertência Removida")
-                .addFields(
-                    { name: "👤 Usuário", value: `${user.tag} (${user.id})`, inline: true },
-                    { name: "🛠️ Removida por", value: `${interaction.user.tag}`, inline: true },
-                    { name: "📌 Advertências restantes", value: `${advertCount}`, inline: true }
-                )
-                .setTimestamp();
+            .setColor("#FFD700") // Amarelo dourado elegante
+            .setTitle("🗑️ Advertência Removida")
+            .setThumbnail(user.displayAvatarURL({ dynamic: true })) // Foto do usuário para personalizar
+            .addFields(
+                { name: "👤 Usuário", value: `> ${user.tag} \`(${user.id})\``, inline: false },
+                { name: "🛠️ Removida por", value: `> ${interaction.user.tag}`, inline: true },
+                { name: "📌 Advertências restantes", value: `> ${advertCount}`, inline: true }
+            )
+            .setFooter({ text: "Sistema de Advertências | Zezin Customs", iconURL: client.user.displayAvatarURL() })
+            .setTimestamp();
 
             await logChannel.send({ embeds: [embedLog] });
         }
